@@ -6,21 +6,21 @@ import {
   DEFAULT_LOGIN_REDIRECT,
   privateRoutes,
 } from "./routes";
-import { authConfig } from "@/auth.config";
-import NextAuth from "next-auth";
+import { getToken } from "next-auth/jwt";
 
-const { auth } = NextAuth(authConfig);
-
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { nextUrl } = req;
-
-  const session = await auth();
-  const isLoggedIn = !!session?.user;
-
   const pathname = nextUrl.pathname;
 
-  // Skip API auth routes
+  // Skip API auth routes immediately - no token check needed
   if (pathname.startsWith(apiAuthPrefix)) return NextResponse.next();
+
+  // Read JWT from cookie - fast, no DB call
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET,
+  });
+  const isLoggedIn = !!token;
 
   const isAuthRoute = authRoutes.includes(pathname);
   const isPrivateRoute = privateRoutes.some((route) =>

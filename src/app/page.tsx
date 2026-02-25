@@ -6,8 +6,19 @@ import { TrialFAQ } from "@/components/landing/TrialFAQ";
 import { TrialFooter } from "@/components/landing/TrialFooter";
 import { TrialNavbar } from "@/components/landing/TrialNavbar";
 import { FloatingTrialCTA } from "@/components/landing/FloatingTrialCTA";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
+
+  if (session?.user) {
+    const role = session.user.role;
+    if (role === "VENDOR") redirect("/vendor/dashboard");
+    else if (role === "ADMIN") redirect("/admin/dashboard");
+    else redirect("/products");
+  }
+
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900 selection:bg-sky-200 selection:text-sky-900">
       <TrialNavbar />

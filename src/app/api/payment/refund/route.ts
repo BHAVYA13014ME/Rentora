@@ -106,6 +106,36 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Validate that transactionId is a Razorpay payment ID (starts with 'pay_')
+    if (!payment.transactionId.startsWith("pay_")) {
+      console.error(
+        `Invalid transactionId format: ${payment.transactionId}. Expected Razorpay payment ID starting with 'pay_'`,
+      );
+      // Cancel the order without refund
+      await db.rentalOrder.update({
+        where: { id: orderId },
+        data: {
+          status: "CANCELLED",
+          cancelledAt: new Date(),
+          notes: reason
+            ? `Cancellation reason: ${reason}. Manual refund required - invalid payment reference.`
+            : "Manual refund required - invalid payment reference.",
+        },
+      });
+      await cancelOrderReservations(orderId);
+      revalidatePath("/orders");
+      revalidatePath(`/orders/${orderId}`);
+      return NextResponse.json(
+        {
+          error:
+            "Order cancelled, but automatic refund could not be processed. Please contact support for a manual refund.",
+          orderId: order.id,
+          cancelled: true,
+        },
+        { status: 200 },
+      );
+    }
+
     // Calculate refund amount (could be partial based on business logic)
     const refundAmount = Number(payment.amount);
 
@@ -180,16 +210,50 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (refundError: any) {
-      console.error("Refund failed:", refundError);
+      // Log full Razorpay error details for debugging
+      console.error("Razorpay refund failed:", {
+        message: refundError?.message,
+        code: refundError?.error?.code,
+        description: refundError?.error?.description,
+        field: refundError?.error?.field,
+        source: refundError?.error?.source,
+        step: refundError?.error?.step,
+        reason: refundError?.error?.reason,
+        paymentId: payment.transactionId,
+        orderId: order.id,
+      });
 
-      // Even if refund fails, we might still want to cancel the order
-      // and handle refund manually
+      // Still cancel the order and flag for manual refund
+      await db.rentalOrder.update({
+        where: { id: orderId },
+        data: {
+          status: "CANCELLED",
+          cancelledAt: new Date(),
+          notes: reason
+            ? `Cancellation reason: ${reason}. Auto-refund failed - manual refund required. Payment: ${payment.transactionId}`
+            : `Auto-refund failed - manual refund required. Payment ID: ${payment.transactionId}`,
+        },
+      });
+
+      await db.payment.update({
+        where: { id: payment.id },
+        data: {
+          notes: `Refund attempted but failed: ${refundError?.error?.description || refundError?.message}. Manual refund required.`,
+        },
+      });
+
+      await cancelOrderReservations(orderId);
+      revalidatePath("/orders");
+      revalidatePath(`/orders/${orderId}`);
+
       return NextResponse.json(
         {
-          error: `Refund failed: ${refundError.message}. Please contact support for manual refund.`,
+          error:
+            "Order cancelled, but automatic refund could not be processed. Please contact support with your order number for a manual refund.",
           orderId: order.id,
+          cancelled: true,
         },
-        { status: 500 },
+        { status: 200 },
       );
     }
   } catch (error: any) {

@@ -127,8 +127,9 @@ export async function createRefund(
     );
     return refund as RazorpayRefund;
   } catch (error: any) {
-    console.error("Error creating refund:", error);
-    throw new Error(error?.error?.description || "Failed to create refund");
+    console.error("Error creating refund:", JSON.stringify(error, null, 2));
+    // Re-throw the original error so callers can inspect error.error.description etc.
+    throw error;
   }
 }
 

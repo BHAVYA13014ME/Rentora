@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 
 const dancingScript = Dancing_Script({ subsets: ["latin"] });
 
@@ -111,7 +112,7 @@ export function AdminNavbar({ user }: AdminNavbarProps) {
                         </DropdownMenuItem>
 
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">Logout</DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600" onClick={() => signOut({ callbackUrl: "/" })}>Logout</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

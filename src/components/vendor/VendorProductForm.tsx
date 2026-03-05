@@ -56,9 +56,11 @@ type AttributeLine = {
 interface VendorProductFormProps {
     initialData?: any; // Using any for flexibility with backend types, but prefer strong typing if possible
     isEditMode?: boolean;
+    backHref?: string;
+    redirectHref?: string;
 }
 
-export function VendorProductForm({ initialData, isEditMode = false }: VendorProductFormProps) {
+export function VendorProductForm({ initialData, isEditMode = false, backHref = "/vendor/products", redirectHref = "/vendor/products" }: VendorProductFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -262,7 +264,7 @@ export function VendorProductForm({ initialData, isEditMode = false }: VendorPro
                 const result = await updateProduct(initialData.id, payload);
                 if (result.success) {
                     toast.success("Product updated successfully");
-                    router.push("/vendor/products");
+                    router.push(redirectHref);
                 } else {
                     toast.error(result.error || "Failed to update product");
                 }
@@ -288,7 +290,7 @@ export function VendorProductForm({ initialData, isEditMode = false }: VendorPro
                     } else {
                         toast.success("Product created successfully");
                     }
-                    router.push("/vendor/products");
+                    router.push(redirectHref);
                 } else {
                     toast.error(result.error || "Failed to create product");
                 }
@@ -307,7 +309,7 @@ export function VendorProductForm({ initialData, isEditMode = false }: VendorPro
                 {/* We can make this header sticky if needed, but styling locally for now */}
                 <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" asChild className="rounded-full">
-                        <Link href="/vendor/products">
+                        <Link href={backHref}>
                             <ArrowLeft className="h-5 w-5 text-slate-500" />
                         </Link>
                     </Button>
@@ -328,7 +330,7 @@ export function VendorProductForm({ initialData, isEditMode = false }: VendorPro
                         <Switch id="publish-mode" checked={isPublished} onCheckedChange={setIsPublished} />
                     </div>
                     <Button variant="outline" asChild className="hidden sm:flex">
-                        <Link href="/vendor/products">Cancel</Link>
+                        <Link href={backHref}>Cancel</Link>
                     </Button>
                     <Button onClick={handleSubmit} disabled={loading} className="min-w-[120px] bg-sky-500 hover:bg-sky-600 text-white">
                         <Save className="mr-2 h-4 w-4" />

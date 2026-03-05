@@ -873,9 +873,10 @@ export async function getVendorProductById(productId: string): Promise<{
   try {
     const session = await getVendorSession();
     const vendorId = session.user.id;
+    const isAdmin = session.user.role === "ADMIN";
 
     const product = await db.product.findFirst({
-      where: { id: productId, vendorId },
+      where: isAdmin ? { id: productId } : { id: productId, vendorId },
       include: {
         category: { select: { id: true, name: true } },
         images: { orderBy: { sortOrder: "asc" } },
@@ -1029,9 +1030,10 @@ export async function updateProduct(
   try {
     const session = await getVendorSession();
     const vendorId = session.user.id;
+    const isAdmin = session.user.role === "ADMIN";
 
     const product = await db.product.findFirst({
-      where: { id: productId, vendorId },
+      where: isAdmin ? { id: productId } : { id: productId, vendorId },
     });
 
     if (!product) {
@@ -1068,6 +1070,7 @@ export async function updateProduct(
     }
 
     revalidatePath("/vendor/products");
+    revalidatePath("/admin/products");
     return { success: true };
   } catch (error) {
     console.error("Error updating product:", error);
@@ -1081,9 +1084,10 @@ export async function deleteProduct(
   try {
     const session = await getVendorSession();
     const vendorId = session.user.id;
+    const isAdmin = session.user.role === "ADMIN";
 
     const product = await db.product.findFirst({
-      where: { id: productId, vendorId },
+      where: isAdmin ? { id: productId } : { id: productId, vendorId },
     });
 
     if (!product) {
@@ -1093,6 +1097,7 @@ export async function deleteProduct(
     await db.product.delete({ where: { id: productId } });
 
     revalidatePath("/vendor/products");
+    revalidatePath("/admin/products");
     return { success: true };
   } catch (error) {
     console.error("Error deleting product:", error);

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
     Search,
     Plus,
@@ -21,22 +23,61 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { deleteProduct } from "@/actions/vendor";
 
 interface ProductListProps {
     products: any[];
 }
 
 export function ProductList({ products }: ProductListProps) {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
+    const [productList, setProductList] = useState(products);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
-    const filteredProducts = products.filter((product) => {
-        const lowerQuery = searchQuery.toLowerCase();
-        return (
-            product.name.toLowerCase().includes(lowerQuery) ||
-            (product.sku || "").toLowerCase().includes(lowerQuery) ||
-            (product.category?.name || "").toLowerCase().includes(lowerQuery)
-        );
-    });
+    const filteredProducts = productList.filter((product) => {
+            const lowerQuery = searchQuery.toLowerCase();
+            return (
+                product.name.toLowerCase().includes(lowerQuery) ||
+                (product.sku || "").toLowerCase().includes(lowerQuery) ||
+                (product.category?.name || "").toLowerCase().includes(lowerQuery)
+            );
+        });
+
+    const handleDeleteClick = (productId: string) => {
+        setProductToDelete(productId);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!productToDelete) return;
+        setDeleting(true);
+        try {
+            const result = await deleteProduct(productToDelete);
+            if (result.success) {
+                setProductList(productList.filter(p => p.id !== productToDelete));
+                toast.success("Product deleted");
+                setDeleteDialogOpen(false);
+            } else {
+                toast.error(result.error || "Failed to delete product");
+            }
+        } catch {
+            toast.error("Failed to delete product");
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     return (
         <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 font-sans">
@@ -57,8 +98,10 @@ export function ProductList({ products }: ProductListProps) {
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
-                        <Plus className="w-4 h-4" /> Add Product
+                    <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
+                        <Link href="/admin/products/new">
+                            <Plus className="w-4 h-4" /> Add Product
+                        </Link>
                     </Button>
                 </div>
             </div>
@@ -143,11 +186,11 @@ export function ProductList({ products }: ProductListProps) {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => router.push(`/admin/products/${product.id}`)}>
                                                         <Pencil className="w-4 h-4 mr-2" /> Edit
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50">
+                                                    <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50" onClick={() => handleDeleteClick(product.id)}>
                                                         <Trash2 className="w-4 h-4 mr-2" /> Delete
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
@@ -160,6 +203,26 @@ export function ProductList({ products }: ProductListProps) {
                     </table>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Product</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this product? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleting}>
+                            {deleting ? "Deleting..." : "Delete"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

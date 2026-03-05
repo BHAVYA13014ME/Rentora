@@ -47,7 +47,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { updateOrderStatus, sendQuotationToCustomer, convertQuotationToOrder, createInvoice, UnifiedOrderItem } from "@/actions/vendor";
+import { updateOrderStatus, sendQuotationToCustomer, convertQuotationToOrder, createInvoice } from "@/actions/vendor";
 import { PaymentStatus, OrderStatus } from "@prisma/client";
 import { cn } from "@/lib/utils";
 

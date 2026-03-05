@@ -154,4 +154,4 @@ export async function getPaymentRefunds(paymentId: string) {
   }
 }
 
-export default razorpay;
+export default getRazorpayInstance;

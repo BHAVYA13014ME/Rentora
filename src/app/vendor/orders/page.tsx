@@ -1,5 +1,5 @@
 import { getVendorOrders, getVendorQuotations } from "@/actions/vendor";
-import { VendorOrderList, UnifiedOrderItem } from "@/components/vendor/VendorOrderList";
+import { VendorOrderList, UnifiedOrderItemLocal as UnifiedOrderItem } from "@/components/vendor/VendorOrderList";
 
 export const dynamic = "force-dynamic";
 

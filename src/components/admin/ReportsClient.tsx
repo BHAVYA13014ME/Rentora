@@ -195,7 +195,7 @@ export function ReportsClient({ orders }: ReportsClientProps) {
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
                                     cursor={{ fill: '#334155', opacity: 0.1 }}
-                                    formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]}
+                                    formatter={(value: number | undefined) => [`₹${(value ?? 0).toLocaleString()}`, "Revenue"]}
                                 />
                                 <Bar dataKey="value" fill="#0ea5e9" radius={[4, 4, 0, 0]} barSize={40} />
                             </BarChart>
@@ -216,7 +216,7 @@ export function ReportsClient({ orders }: ReportsClientProps) {
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                                     outerRadius={120}
                                     fill="#8884d8"
                                     dataKey="value"

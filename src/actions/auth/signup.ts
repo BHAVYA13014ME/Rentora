@@ -15,7 +15,8 @@ export const Register = async (values: z.infer<typeof RegisterSchema>) => {
 
   console.log("Register data", validation.data);
 
-  const { email, password, name } = validation.data;
+  const { email, password, firstName, lastName } = validation.data;
+  const name = `${firstName} ${lastName}`.trim();
 
   const existinguser = await getUserByEmail(email);
 
@@ -25,7 +26,8 @@ export const Register = async (values: z.infer<typeof RegisterSchema>) => {
 
   const user = await db.user.create({
     data: {
-      name,
+      firstName,
+      lastName,
       email,
       password: hashedPassord,
     },

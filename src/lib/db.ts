@@ -12,7 +12,7 @@ const prismaClientOptions = {
       url: process.env.DATABASE_URL,
     },
   },
-  log: process.env.NODE_ENV === "development" ? (["error"] as const) : ([] as const),
+  log: (process.env.NODE_ENV === "development" ? ["error"] : []) as ("error" | "warn" | "info" | "query")[],
 };
 
 if (process.env.NODE_ENV === "production") {

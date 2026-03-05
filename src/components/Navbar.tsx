@@ -165,7 +165,7 @@ export function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
-                  onClick={() => signOut()}
+                  onClick={() => signOut({ callbackUrl: "/" })}
                 >
                   <LogOut className="h-4 w-4 mr-2" /> Logout
                 </DropdownMenuItem>

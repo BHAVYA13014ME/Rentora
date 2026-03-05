@@ -60,6 +60,16 @@ export function LoginForm() {
           redirect: false,
         });
 
+        // Verify a session was actually created before redirecting
+        const session = await fetch("/api/auth/session").then((r) => r.json());
+        if (!session?.user) {
+          toast.error("Login failed. Please check your credentials.", {
+            id: toastId,
+            closeButton: true,
+          });
+          return;
+        }
+
         toast.success("Logged in successfully!", {
           id: toastId,
           closeButton: true,

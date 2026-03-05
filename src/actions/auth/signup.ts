@@ -30,20 +30,9 @@ export const Register = async (values: z.infer<typeof RegisterSchema>) => {
       lastName,
       email,
       password: hashedPassord,
+      emailVerified: new Date(),
     },
   });
 
-  const verificationToken = await generateVerificationToken(email);
-
-  try {
-    if (existinguser) return { error: "User already exist!", success: "" };
-    await sendVerificationEmail(
-      verificationToken.email,
-      verificationToken.token,
-      name
-    );
-  } catch (error) {
-    console.error("Error while sending Verification Mail:", error);
-  }
-  return { success: "Confirmation email sent!" };
+  return { success: "Account created! You can now log in." };
 };
